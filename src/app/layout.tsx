@@ -1,5 +1,8 @@
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { DM_Sans, Syne } from "next/font/google";
+import { AppHeader } from "@/components/AppHeader";
+import { clerkAppearance } from "@/lib/clerk-appearance";
 import "./globals.css";
 
 const syne = Syne({
@@ -27,7 +30,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${syne.variable} ${dmSans.variable}`}>{children}</body>
+      <body className={`${syne.variable} ${dmSans.variable}`}>
+        <ClerkProvider appearance={clerkAppearance}>
+          <AppHeader />
+          {children}
+        </ClerkProvider>
+      </body>
     </html>
   );
 }

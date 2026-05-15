@@ -1,0 +1,67 @@
+/**
+ * SideHustleHub color palette (light-first)
+ *
+ * Base:
+ *   --palette-cream    #FEF8EE  primary background
+ *   --palette-ink      #101010  primary text & emphasis
+ *   --palette-charcoal #242424  secondary emphasis & borders
+ */
+
+:root {
+  /* ── Base palette (source of truth) ── */
+  --palette-cream: #fef8ee;
+  --palette-ink: #101010;
+  --palette-charcoal: #242424;
+
+  /* ── Semantic aliases (cream-first / light UI) ── */
+  --color-bg: var(--palette-cream);
+  --color-bg-elevated: color-mix(
+    in srgb,
+    var(--palette-cream) 94%,
+    var(--palette-ink) 6%
+  );
+  --color-surface: color-mix(
+    in srgb,
+    var(--palette-cream) 90%,
+    var(--palette-ink) 10%
+  );
+  --color-surface-hover: color-mix(
+    in srgb,
+    var(--palette-cream) 84%,
+    var(--palette-ink) 16%
+  );
+  --color-surface-pressed: color-mix(
+    in srgb,
+    var(--palette-cream) 78%,
+    var(--palette-ink) 22%
+  );
+  --color-surface-dark: var(--palette-charcoal);
+
+  --color-text: var(--palette-ink);
+  --color-text-muted: color-mix(in srgb, var(--palette-ink) 55%, transparent);
+  --color-text-subtle: color-mix(in srgb, var(--palette-ink) 40%, transparent);
+  --color-text-inverse: var(--palette-cream);
+  --color-text-on-dark: var(--palette-cream);
+
+  --color-accent: var(--palette-ink);
+  --color-accent-muted: var(--palette-charcoal);
+  --color-accent-subtle: color-mix(in srgb, var(--palette-ink) 8%, transparent);
+  --color-accent-strong: var(--palette-charcoal);
+
+  --color-border: color-mix(in srgb, var(--palette-ink) 12%, transparent);
+  --color-border-strong: color-mix(in srgb, var(--palette-ink) 20%, transparent);
+  --color-border-focus: color-mix(in srgb, var(--palette-charcoal) 50%, transparent);
+
+  --color-overlay: color-mix(in srgb, var(--palette-cream) 88%, transparent);
+  --color-glow: color-mix(in srgb, var(--palette-ink) 6%, transparent);
+  --color-glow-soft: color-mix(in srgb, var(--palette-ink) 3%, transparent);
+
+  /* ── Legacy aliases (used across existing components) ── */
+  --bg: var(--color-bg);
+  --surface: var(--color-surface);
+  --accent: var(--color-accent);
+  --accent2: var(--color-accent-muted);
+  --text: var(--color-text);
+  --muted: var(--color-text-muted);
+  --border: var(--color-border);
+}
