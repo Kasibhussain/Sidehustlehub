@@ -1,8 +1,9 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { DM_Sans, Syne } from "next/font/google";
+import type { ReactNode } from "react";
 import { AppHeader } from "@/components/AppHeader";
-import { clerkAppearance } from "@/lib/clerk-appearance";
+import { Providers } from "./providers";
+import "@/styles/colors.css";
 import "./globals.css";
 
 const syne = Syne({
@@ -26,15 +27,18 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${syne.variable} ${dmSans.variable}`}>
-        <ClerkProvider appearance={clerkAppearance}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${syne.variable} ${dmSans.variable}`}
+        suppressHydrationWarning
+      >
+        <Providers>
           <AppHeader />
           {children}
-        </ClerkProvider>
+        </Providers>
       </body>
     </html>
   );

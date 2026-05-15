@@ -33,6 +33,20 @@ If the app errors or auth redirects fail locally:
 3. **Clerk domains** — In [Clerk Dashboard](https://dashboard.clerk.com/) → **Configure → Domains**, add `http://localhost:3000`
 4. **Env file** — Prefer `.env.local` for secrets (copy from `.env.example`). Restart the dev server after changing env vars.
 
+## Jobs platform (scaffold)
+
+| Route | Description |
+| ----- | ----------- |
+| `/jobs` | Browse open jobs (public) |
+| `/jobs/new` | Post a job (sign in required) |
+| `/jobs/[id]` | Job detail + poster applications |
+| `/jobs/[id]/apply` | Apply to a job (sign in required) |
+| `/dashboard` | Your posted jobs and applications |
+
+Data is stored **in memory** for now (resets on server restart). Replace `src/lib/jobs/store.ts` with a database (e.g. Supabase) for production.
+
+Full product backlog (posters, workers, payments, trust, admin): [docs/PRODUCT-FEATURES.md](docs/PRODUCT-FEATURES.md).
+
 ## Auth (Clerk)
 
 | Route        | Description                    |
@@ -47,7 +61,8 @@ Get API keys from the [Clerk Dashboard](https://dashboard.clerk.com/) and add th
 
 | Command       | Description                    |
 | ------------- | ------------------------------ |
-| `yarn dev`    | Start dev server (Turbopack)   |
+| `yarn dev`    | Start dev server on port 3000  |
+| `yarn dev:clean` | Clear `.next` cache and start dev |
 | `yarn build`  | Production build               |
 | `yarn start`  | Serve production build         |
 | `yarn lint`   | Run ESLint                     |
@@ -76,7 +91,20 @@ This repo is ready for [Vercel](https://vercel.com). Next.js is auto-detected; `
 
 5. Click **Deploy**.
 
-After the first deploy, in Clerk go to **Configure → Domains** and add your Vercel URL (e.g. `https://sidehustlehub.vercel.app` and any custom domain).
+After the first deploy, in Clerk go to **Configure → Domains** and add your Vercel URL (e.g. `https://your-app.vercel.app` and any custom domain).
+
+### `MIDDLEWARE_INVOCATION_FAILED` (500 on Vercel)
+
+This almost always means **Clerk env vars are missing or wrong** on Vercel:
+
+1. Vercel → your project → **Settings → Environment Variables**
+2. Add `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY` from [Clerk API Keys](https://dashboard.clerk.com/~/api-keys)
+3. Enable them for **Production**, **Preview**, and **Development**
+4. Add the path variables from the table above (`/sign-in`, `/sign-up`, etc.)
+5. **Redeploy** (Deployments → ⋯ → Redeploy) — env changes do not apply to old deployments
+6. In Clerk → **Configure → Domains**, add your live URL: `https://<your-project>.vercel.app`
+
+Copy keys exactly (no quotes, no trailing spaces). The build will fail with a clear error if required keys are missing on Vercel.
 
 ### Option B — Vercel CLI
 

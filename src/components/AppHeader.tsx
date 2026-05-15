@@ -16,6 +16,15 @@ export function AppHeader() {
           Side<span>Hustle</span>Hub
         </Link>
 
+        <div className="nav-links">
+          <Link href="/jobs" className="nav-link">
+            Jobs
+          </Link>
+          <Link href="/services" className="nav-link">
+            Services
+          </Link>
+        </div>
+
         <div className="nav-actions">
           <Show when="signed-out">
             <SignInButton mode="redirect">
@@ -32,6 +41,9 @@ export function AppHeader() {
           <Show when="signed-in">
             <Link href="/dashboard" className="btn btn-ghost">
               Dashboard
+            </Link>
+            <Link href="/profile" className="btn btn-ghost">
+              Profile
             </Link>
             <UserButton
               appearance={{
