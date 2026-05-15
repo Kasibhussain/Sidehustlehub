@@ -24,6 +24,15 @@ yarn dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### Localhost troubleshooting
+
+If the app errors or auth redirects fail locally:
+
+1. **Use port 3000** — `yarn dev` binds to `3000`. If you see “port in use”, stop the other process: `lsof -ti:3000 | xargs kill -9`
+2. **Clear the Next.js cache** — `yarn dev:clean` (fixes missing `.next` manifest errors)
+3. **Clerk domains** — In [Clerk Dashboard](https://dashboard.clerk.com/) → **Configure → Domains**, add `http://localhost:3000`
+4. **Env file** — Prefer `.env.local` for secrets (copy from `.env.example`). Restart the dev server after changing env vars.
+
 ## Auth (Clerk)
 
 | Route        | Description                    |
