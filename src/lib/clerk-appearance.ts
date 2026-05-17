@@ -1,14 +1,14 @@
 import { palette } from "./colors";
 
 const inkBorder = `color-mix(in srgb, ${palette.ink} 12%, transparent)`;
-const inkMuted = "rgba(16, 16, 16, 0.55)";
+const inkMuted = "rgba(20, 17, 16, 0.55)";
 
 export const clerkAppearance = {
   variables: {
-    colorPrimary: palette.ink,
+    colorPrimary: palette.brand,
     colorDanger: "#c94a4a",
-    colorSuccess: palette.ink,
-    colorWarning: palette.charcoal,
+    colorSuccess: "#15803d",
+    colorWarning: "#a16207",
     colorNeutral: palette.charcoal,
     colorForeground: palette.ink,
     colorBackground: palette.cream,
@@ -17,8 +17,8 @@ export const clerkAppearance = {
     colorText: palette.ink,
     colorTextSecondary: inkMuted,
     borderRadius: "0.5rem",
-    fontFamily: "var(--font-dm-sans), sans-serif",
-    fontFamilyButtons: "var(--font-syne), sans-serif",
+    fontFamily: "var(--font-sans), system-ui, sans-serif",
+    fontFamilyButtons: "var(--font-sans), system-ui, sans-serif",
   },
   elements: {
     rootBox: { width: "100%" },
@@ -28,20 +28,20 @@ export const clerkAppearance = {
       boxShadow: "none",
     },
     headerTitle: {
-      fontFamily: "var(--font-syne), sans-serif",
-      fontWeight: "800",
+      fontFamily: "var(--font-display), system-ui, sans-serif",
+      fontWeight: "700",
     },
     formButtonPrimary: {
-      background: palette.ink,
-      color: palette.cream,
-      fontFamily: "var(--font-syne), sans-serif",
-      fontWeight: "700",
+      background: palette.brand,
+      color: "#ffffff",
+      fontFamily: "var(--font-sans), system-ui, sans-serif",
+      fontWeight: "600",
       "&:hover": {
-        background: palette.charcoal,
+        background: palette.brandDeep,
       },
     },
-    footerActionLink: { color: palette.ink },
-    identityPreviewEditButton: { color: palette.ink },
+    footerActionLink: { color: palette.brand },
+    identityPreviewEditButton: { color: palette.brand },
     formFieldInput: {
       background: palette.cream,
       border: `1px solid ${inkBorder}`,

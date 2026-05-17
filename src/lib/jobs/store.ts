@@ -4,6 +4,7 @@ import type {
   CreateJobInput,
   EngagementType,
   Job,
+  JobSort,
   Urgency,
 } from "@/types/job";
 import type { WorkerProfile } from "@/types/profile";
@@ -151,7 +152,52 @@ export type JobListFilters = {
   urgency?: Urgency;
   engagementType?: EngagementType;
   payType?: Job["payType"];
+  sort?: JobSort;
 };
+
+function effectivePayForSort(job: Job): number {
+  if (job.payType === "offer") return 0;
+  if (
+    job.payAmountMax != null &&
+    job.payAmountMax > job.payAmount
+  ) {
+    return (job.payAmount + job.payAmountMax) / 2;
+  }
+  return job.payAmount;
+}
+
+function sortJobs(jobs: Job[], sort: JobSort = "newest"): Job[] {
+  const copy = [...jobs];
+  switch (sort) {
+    case "budget_high":
+      return copy.sort(
+        (a, b) => effectivePayForSort(b) - effectivePayForSort(a),
+      );
+    case "budget_low":
+      return copy.sort(
+        (a, b) => effectivePayForSort(a) - effectivePayForSort(b),
+      );
+    case "deadline_soon":
+      return copy.sort((a, b) => {
+        const da = a.deadlineAt
+          ? new Date(a.deadlineAt).getTime()
+          : Number.POSITIVE_INFINITY;
+        const db = b.deadlineAt
+          ? new Date(b.deadlineAt).getTime()
+          : Number.POSITIVE_INFINITY;
+        if (da !== db) return da - db;
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      });
+    case "newest":
+    default:
+      return copy.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+  }
+}
 
 class MarketplaceStore {
   private jobs: Job[] = [...SEED_JOBS];
@@ -160,12 +206,10 @@ class MarketplaceStore {
   private profiles = new Map<string, WorkerProfile>(
     SEED_PROFILES.map((p) => [p.userId, p]),
   );
+  private savedJobIdsByUser = new Map<string, Set<string>>();
 
   listJobs(filters?: JobListFilters): Job[] {
-    let result = [...this.jobs].sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
+    let result = [...this.jobs];
 
     if (filters?.category) {
       result = result.filter((j) => j.category === filters.category);
@@ -198,7 +242,7 @@ class MarketplaceStore {
       );
     }
 
-    return result;
+    return sortJobs(result, filters?.sort ?? "newest");
   }
 
   getJob(id: string): Job | undefined {
@@ -215,6 +259,17 @@ class MarketplaceStore {
       createdAt: new Date().toISOString(),
     };
     this.jobs.unshift(job);
+    return job;
+  }
+
+  updateJob(
+    jobId: string,
+    posterId: string,
+    input: CreateJobInput,
+  ): Job | null {
+    const job = this.jobs.find((j) => j.id === jobId && j.posterId === posterId);
+    if (!job || job.status !== "open") return null;
+    Object.assign(job, input);
     return job;
   }
 
@@ -239,7 +294,10 @@ class MarketplaceStore {
       throw new Error("This job is not accepting applications.");
     }
     const existing = this.applications.find(
-      (a) => a.jobId === input.jobId && a.applicantId === applicant.id,
+      (a) =>
+        a.jobId === input.jobId &&
+        a.applicantId === applicant.id &&
+        (a.status === "pending" || a.status === "accepted"),
     );
     if (existing) {
       throw new Error("You have already applied to this job.");
@@ -252,6 +310,7 @@ class MarketplaceStore {
       applicantName: applicant.name,
       message: input.message,
       proposedAmount: input.proposedAmount,
+      contactNote: input.contactNote,
       status: "pending",
       createdAt: new Date().toISOString(),
     };
@@ -331,8 +390,55 @@ class MarketplaceStore {
 
   hasApplied(jobId: string, applicantId: string): boolean {
     return this.applications.some(
-      (a) => a.jobId === jobId && a.applicantId === applicantId,
+      (a) =>
+        a.jobId === jobId &&
+        a.applicantId === applicantId &&
+        (a.status === "pending" || a.status === "accepted"),
     );
+  }
+
+  toggleSavedJob(userId: string, jobId: string): boolean {
+    let set = this.savedJobIdsByUser.get(userId);
+    if (!set) {
+      set = new Set();
+      this.savedJobIdsByUser.set(userId, set);
+    }
+    if (set.has(jobId)) {
+      set.delete(jobId);
+      return false;
+    }
+    set.add(jobId);
+    return true;
+  }
+
+  isJobSaved(userId: string, jobId: string): boolean {
+    return this.savedJobIdsByUser.get(userId)?.has(jobId) ?? false;
+  }
+
+  listSavedJobs(userId: string): Job[] {
+    const ids = this.savedJobIdsByUser.get(userId);
+    if (!ids?.size) return [];
+    return [...ids]
+      .map((id) => this.getJob(id))
+      .filter((j): j is Job => j != null);
+  }
+
+  withdrawApplication(
+    applicationId: string,
+    applicantId: string,
+  ): { ok: true } | { error: string } {
+    const idx = this.applications.findIndex(
+      (a) => a.id === applicationId && a.applicantId === applicantId,
+    );
+    if (idx === -1) {
+      return { error: "Application not found." };
+    }
+    const app = this.applications[idx];
+    if (app.status !== "pending") {
+      return { error: "Only pending applications can be withdrawn." };
+    }
+    this.applications.splice(idx, 1);
+    return { ok: true };
   }
 
   getProfile(userId: string): WorkerProfile | undefined {
@@ -345,13 +451,20 @@ class MarketplaceStore {
     return next;
   }
 
-  listServices(filters?: { category?: string; search?: string }): Service[] {
+  listServices(filters?: {
+    category?: string;
+    subcategory?: string;
+    search?: string;
+  }): Service[] {
     let result = [...this.services].sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
     if (filters?.category) {
       result = result.filter((s) => s.category === filters.category);
+    }
+    if (filters?.subcategory) {
+      result = result.filter((s) => s.subcategory === filters.subcategory);
     }
     if (filters?.search?.trim()) {
       const q = filters.search.trim().toLowerCase();
@@ -405,6 +518,11 @@ export const jobsStore = {
   getJob: (id: string) => getStore().getJob(id),
   createJob: (input: CreateJobInput, poster: { id: string; name: string }) =>
     getStore().createJob(input, poster),
+  updateJob: (
+    jobId: string,
+    posterId: string,
+    input: CreateJobInput,
+  ) => getStore().updateJob(jobId, posterId, input),
   closeJob: (jobId: string, posterId: string) =>
     getStore().closeJob(jobId, posterId),
   listByPoster: (posterId: string) => getStore().listByPoster(posterId),
@@ -430,11 +548,23 @@ export const jobsStore = {
     getStore().countApplicationsForJob(jobId),
   hasApplied: (jobId: string, applicantId: string) =>
     getStore().hasApplied(jobId, applicantId),
+  toggleSavedJob: (userId: string, jobId: string) =>
+    getStore().toggleSavedJob(userId, jobId),
+  isJobSaved: (userId: string, jobId: string) =>
+    getStore().isJobSaved(userId, jobId),
+  listSavedJobs: (userId: string) => getStore().listSavedJobs(userId),
+  withdrawApplication: (
+    applicationId: string,
+    applicantId: string,
+  ) => getStore().withdrawApplication(applicationId, applicantId),
   getProfile: (userId: string) => getStore().getProfile(userId),
   upsertProfile: (userId: string, data: Omit<WorkerProfile, "userId">) =>
     getStore().upsertProfile(userId, data),
-  listServices: (filters?: { category?: string; search?: string }) =>
-    getStore().listServices(filters),
+  listServices: (filters?: {
+    category?: string;
+    subcategory?: string;
+    search?: string;
+  }) => getStore().listServices(filters),
   getService: (id: string) => getStore().getService(id),
   createService: (
     input: CreateServiceInput,

@@ -1,5 +1,7 @@
 export type JobStatus = "open" | "closed" | "assigned";
 export type PayType = "fixed" | "hourly" | "offer";
+export type JobSort = "newest" | "budget_high" | "budget_low" | "deadline_soon";
+
 export type ApplicationStatus = "pending" | "accepted" | "rejected";
 export type EngagementType = "one_off" | "ongoing";
 export type Urgency = "asap" | "flexible";
@@ -33,6 +35,8 @@ export type Application = {
   message: string;
   /** Quote / proposed amount in £ when bidding */
   proposedAmount: number | null;
+  /** Optional one-line contact hint for the poster (e.g. phone, email). */
+  contactNote: string | null;
   status: ApplicationStatus;
   createdAt: string;
 };
@@ -55,4 +59,5 @@ export type CreateApplicationInput = {
   jobId: string;
   message: string;
   proposedAmount: number | null;
+  contactNote: string | null;
 };

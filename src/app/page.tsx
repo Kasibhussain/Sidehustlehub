@@ -1,82 +1,144 @@
 import { HeroCta } from "@/components/HeroCta";
+import { HomeHeroSpotlight } from "@/components/home/HomeHeroSpotlight";
+import { HomeMarketplaceHub } from "@/components/home/HomeMarketplaceHub";
 import { HomeClosingCta } from "@/components/HomeClosingCta";
+import { HomeMarketPreview } from "@/components/HomeMarketPreview";
 import { SiteFooter } from "@/components/SiteFooter";
+import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 
-export default function Home() {
-  return (
-    <main className="home">
-      <div className="glow" aria-hidden />
-      <div className="glow glow-left" aria-hidden />
+export default async function Home() {
+  const { userId } = await auth();
+  const signedIn = Boolean(userId);
 
-      <section className="home-hero" aria-labelledby="home-hero-heading">
-        <div className="home-hero__grid">
-          <div className="home-hero__copy home-reveal">
-            <p className="home-eyebrow">Side work marketplace</p>
-            <h1 id="home-hero-heading" className="home-hero__title">
-              Hire skill.{" "}
-              <span className="home-hero__title-accent">Pick up work.</span>{" "}
-              Skip the noise.
-            </h1>
+  return (
+    <main
+      id="main-content"
+      className={`home ${signedIn ? "home--workspace" : "home--guest"}`}
+    >
+      {signedIn && (
+        <>
+          <div className="glow" aria-hidden />
+          <div className="glow glow-left" aria-hidden />
+        </>
+      )}
+
+      <section
+        className={`home-hero${signedIn ? "" : " home-hero--jumbotron"}`}
+        aria-labelledby="home-hero-heading"
+      >
+        {!signedIn && (
+          <>
+            <div className="home-jumbotron__fx" aria-hidden>
+              <div className="home-jumbotron__gradient" />
+              <div className="home-jumbotron__grid" />
+            </div>
+            <div className="home-jumbotron__overlay" aria-hidden />
+          </>
+        )}
+        <div
+          className={`home-hero__grid${signedIn ? "" : " home-hero__grid--jumbotron"}`}
+        >
+          <div
+            className={`home-hero__copy ${
+              signedIn
+                ? "home-reveal home-hero__copy--workspace"
+                : "home-hero__copy--guest home-jumbotron__stagger--1"
+            }`}
+          >
+            {signedIn ? (
+              <p className="home-eyebrow home-eyebrow--workspace">
+                <span className="home-eyebrow__pulse" aria-hidden />
+                <span className="home-eyebrow__label">Your hub</span>
+              </p>
+            ) : (
+              <p className="home-eyebrow home-eyebrow--guest">
+                Jobs · Services · Direct
+              </p>
+            )}
+            {signedIn ? (
+              <h1 id="home-hero-heading" className="home-hero__title">
+                Hire skill.{" "}
+                <span className="home-hero__title-accent">Pick up work.</span>{" "}
+                Skip the noise.
+              </h1>
+            ) : (
+              <h1 id="home-hero-heading" className="home-hero__title home-hero__title--guest">
+                <span className="home-hero__guest-line home-hero__guest-line--1">
+                  Hire skill.
+                </span>
+                <span className="home-hero__guest-line home-hero__guest-line--2">
+                  <span className="home-hero__title-accent home-hero__title-accent--guest">
+                    Pick up work.
+                  </span>
+                  <span className="home-hero__guest-line--muted"> Skip the noise.</span>
+                </span>
+              </h1>
+            )}
             <p className="home-hero__lead">
-              Post jobs, list fixed-price services, and connect with hustlers
-              directly. Clear briefs, transparent budgets, and a workflow built
-              for people who treat side work like real work.
+              {signedIn
+                ? "Post, browse, and track everything from one place — the hero actions below are your fastest path into the hub."
+                : "Post roles or list packages, browse live listings, and move fast with budgets and briefs in plain view."}
             </p>
             <HeroCta />
-            <nav className="home-hero__quick" aria-label="Explore marketplace">
-              <Link href="/jobs" className="home-hero__quick-link">
-                Browse open jobs
-              </Link>
-              <span className="home-hero__quick-divider" aria-hidden>
-                ·
-              </span>
-              <Link href="/services" className="home-hero__quick-link">
-                Browse services
-              </Link>
-            </nav>
+            {signedIn && (
+              <nav
+                className="home-hero__quick home-hero__quick--workspace"
+                aria-label="Post or browse marketplace"
+              >
+                <Link href="/jobs/new" className="home-hero__quick-link">
+                  Post a job
+                </Link>
+                <span className="home-hero__quick-divider" aria-hidden>
+                  ·
+                </span>
+                <Link href="/jobs" className="home-hero__quick-link">
+                  Browse open jobs
+                </Link>
+                <span className="home-hero__quick-divider" aria-hidden>
+                  ·
+                </span>
+                <Link href="/services/new" className="home-hero__quick-link">
+                  List a service
+                </Link>
+                <span className="home-hero__quick-divider" aria-hidden>
+                  ·
+                </span>
+                <Link href="/services" className="home-hero__quick-link">
+                  Browse services
+                </Link>
+              </nav>
+            )}
           </div>
 
-          <aside className="home-hero__panel home-reveal home-reveal--delay" aria-hidden>
-            <div className="home-preview">
-              <div className="home-preview__header">
-                <span className="home-preview__label">Live activity</span>
-                <span className="home-preview__pill">Open gigs</span>
-              </div>
-              <ul className="home-preview__list">
-                <li>
-                  <span className="home-preview__tag">Job</span>
-                  <span className="home-preview__copy">
-                    Flat-pack assembly · Manchester
-                  </span>
-                  <span className="home-preview__meta">£85 fixed</span>
-                </li>
-                <li>
-                  <span className="home-preview__tag">Service</span>
-                  <span className="home-preview__copy">
-                    Logo concepts (3) · Design
-                  </span>
-                  <span className="home-preview__meta">£120</span>
-                </li>
-                <li>
-                  <span className="home-preview__tag">Job</span>
-                  <span className="home-preview__copy">
-                    Weekend flyer drop · City centre
-                  </span>
-                  <span className="home-preview__meta">£60–£80</span>
-                </li>
-              </ul>
-              <p className="home-preview__footnote">
-                Illustrative examples — your hub populates as members post real
-                work.
-              </p>
-            </div>
-          </aside>
+          {signedIn ? (
+            <aside
+              className="home-hero__panel home-reveal home-reveal--delay"
+              aria-label="Quick snapshot of open listings"
+            >
+              <HomeMarketPreview />
+            </aside>
+          ) : (
+            <aside
+              className="home-hero__panel home-hero__panel--jumbotron home-jumbotron__stagger--2"
+              aria-label="Platform overview"
+            >
+              <HomeHeroSpotlight />
+            </aside>
+          )}
         </div>
       </section>
 
-      <section className="home-trust" aria-label="Why use SideHustleHub">
-        <ul className="home-trust__grid">
+      {!signedIn && <HomeMarketplaceHub signedIn={false} />}
+
+      <section
+        className="home-trust home-trust--platform"
+        aria-labelledby="platform-trust-heading"
+      >
+        <h2 id="platform-trust-heading" className="home-trust__heading">
+          Built for side-work marketplaces
+        </h2>
+        <ul className={`home-trust__grid${signedIn ? "" : " home-trust__grid--guest"}`}>
           <li>
             <strong>Direct relationships</strong>
             <span>Negotiate and deliver with no platform cut on the handshake.</span>
@@ -94,24 +156,42 @@ export default function Home() {
         </ul>
       </section>
 
-      <section className="home-section" aria-labelledby="how-heading">
+      <section className="home-section home-section--how" aria-labelledby="how-heading">
         <div className="home-section__intro">
+          <p className="home-section__eyebrow">How it works</p>
           <h2 id="how-heading" className="home-section__title">
-            How it works
+            From signup to paid gig
           </h2>
           <p className="home-section__subtitle">
-            Three straightforward steps from account to outcome — whether
-            you&apos;re buying or selling time.
+            {signedIn
+              ? "You’re past signup — here’s how the loop works whether you’re hiring or hustling."
+              : "Three straightforward steps from account to outcome — whether you’re buying or selling time."}
           </p>
         </div>
         <ol className="home-steps">
           <li className="home-step">
             <span className="home-step__num">01</span>
-            <h3 className="home-step__title">Create your account</h3>
-            <p className="home-step__body">
-              <Link href="/sign-up">Sign up</Link> in moments. Use one profile
-              to post jobs, apply to gigs, list services, and build visibility.
-            </p>
+            {signedIn ? (
+              <>
+                <h3 className="home-step__title">Start from your dashboard</h3>
+                <p className="home-step__body">
+                  Everything you run on SideHustleHub lives in one{" "}
+                  <Link href="/dashboard">dashboard</Link>: jobs you post,
+                  applications you send, saves, and services you sell. Update{" "}
+                  <Link href="/profile">your profile</Link> so people know who
+                  they&apos;re working with.
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="home-step__title">Create your account</h3>
+                <p className="home-step__body">
+                  <Link href="/sign-up">Sign up</Link> in moments. Use one
+                  profile to post jobs, apply to gigs, list services, and build
+                  visibility.
+                </p>
+              </>
+            )}
           </li>
           <li className="home-step">
             <span className="home-step__num">02</span>
@@ -135,12 +215,13 @@ export default function Home() {
       </section>
 
       <section
-        className="home-section home-audience"
+        className={`home-section home-audience${signedIn ? "" : " home-audience--guest"}`}
         aria-labelledby="audience-heading"
       >
         <div className="home-section__intro">
+          <p className="home-section__eyebrow">Two sides, one board</p>
           <h2 id="audience-heading" className="home-section__title">
-            Built for both sides of the marketplace
+            Hire or hustle on the same platform
           </h2>
           <p className="home-section__subtitle">
             Whether you&apos;re hiring or earning, the same tools keep

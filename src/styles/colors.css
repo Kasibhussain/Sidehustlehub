@@ -1,19 +1,33 @@
 /**
- * SideHustleHub color palette (light-first)
+ * SideHustleHub — warm paper + punchy accent
  *
- * Base:
- *   --palette-cream    #FEF8EE  primary background
- *   --palette-ink      #101010  primary text & emphasis
- *   --palette-charcoal #242424  secondary emphasis & borders
+ * Neutral base stays calm for listings; coral–rose “pop” carries CTAs and energy.
  */
 
 :root {
-  /* ── Base palette (source of truth) ── */
-  --palette-cream: #fef8ee;
-  --palette-ink: #101010;
-  --palette-charcoal: #242424;
+  --palette-cream: #fff5f0;
+  --palette-ink: #141110;
+  --palette-charcoal: #2a2624;
 
-  /* ── Semantic aliases (cream-first / light UI) ── */
+  /* Pop colour — hustle / action (not corporate blue) */
+  --palette-pop: #e11d48;
+  --palette-pop-mid: #ff6b8a;
+  --palette-pop-deep: #9f1239;
+  /* Second zest for small highlights (eyebrows, pills) */
+  --palette-zest: #f97316;
+
+  --palette-brand: var(--palette-pop);
+  --palette-brand-mid: var(--palette-pop-mid);
+  --palette-brand-deep: var(--palette-pop-deep);
+
+  --ease-out-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 0.18s;
+  --duration-normal: 0.28s;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --shadow-card: 1px 1px 0 color-mix(in srgb, var(--palette-ink) 7%, transparent),
+    2px 3px 0 color-mix(in srgb, var(--palette-pop) 18%, transparent);
+
   --color-bg: var(--palette-cream);
   --color-bg-elevated: color-mix(
     in srgb,
@@ -38,25 +52,36 @@
   --color-surface-dark: var(--palette-charcoal);
 
   --color-text: var(--palette-ink);
-  --color-text-muted: color-mix(in srgb, var(--palette-ink) 55%, transparent);
-  --color-text-subtle: color-mix(in srgb, var(--palette-ink) 40%, transparent);
+  --color-text-muted: color-mix(in srgb, var(--palette-ink) 52%, transparent);
+  --color-text-subtle: color-mix(in srgb, var(--palette-ink) 38%, transparent);
   --color-text-inverse: var(--palette-cream);
   --color-text-on-dark: var(--palette-cream);
 
-  --color-accent: var(--palette-ink);
-  --color-accent-muted: var(--palette-charcoal);
-  --color-accent-subtle: color-mix(in srgb, var(--palette-ink) 8%, transparent);
-  --color-accent-strong: var(--palette-charcoal);
+  --color-accent: var(--palette-brand);
+  --color-accent-muted: color-mix(
+    in srgb,
+    var(--palette-pop) 45%,
+    var(--palette-charcoal) 55%
+  );
+  --color-accent-subtle: color-mix(
+    in srgb,
+    var(--palette-pop) 16%,
+    var(--palette-cream) 84%
+  );
+  --color-accent-strong: var(--palette-brand-deep);
 
-  --color-border: color-mix(in srgb, var(--palette-ink) 12%, transparent);
-  --color-border-strong: color-mix(in srgb, var(--palette-ink) 20%, transparent);
-  --color-border-focus: color-mix(in srgb, var(--palette-charcoal) 50%, transparent);
+  --color-border: color-mix(in srgb, var(--palette-ink) 14%, transparent);
+  --color-border-strong: color-mix(in srgb, var(--palette-ink) 22%, transparent);
+  --color-border-focus: color-mix(
+    in srgb,
+    var(--palette-pop-mid) 45%,
+    var(--palette-pop-deep) 55%
+  );
 
-  --color-overlay: color-mix(in srgb, var(--palette-cream) 88%, transparent);
-  --color-glow: color-mix(in srgb, var(--palette-ink) 6%, transparent);
-  --color-glow-soft: color-mix(in srgb, var(--palette-ink) 3%, transparent);
+  --color-overlay: var(--palette-cream);
+  --color-glow: color-mix(in srgb, var(--palette-pop-mid) 28%, transparent);
+  --color-glow-soft: color-mix(in srgb, var(--palette-zest) 22%, transparent);
 
-  /* ── Legacy aliases (used across existing components) ── */
   --bg: var(--color-bg);
   --surface: var(--color-surface);
   --accent: var(--color-accent);
@@ -64,4 +89,21 @@
   --text: var(--color-text);
   --muted: var(--color-text-muted);
   --border: var(--color-border);
+}
+
+/* Dark mode — toggled via html[data-theme="dark"] (default is light) */
+html[data-theme="dark"] {
+  --color-bg: #121110;
+  --color-bg-elevated: #1a1816;
+  --color-surface: #23201d;
+  --color-surface-hover: #2c2825;
+  --color-surface-pressed: #35302c;
+  --color-text: var(--palette-cream);
+  --color-text-muted: color-mix(in srgb, var(--palette-cream) 58%, transparent);
+  --color-text-subtle: color-mix(in srgb, var(--palette-cream) 38%, transparent);
+  --color-border: color-mix(in srgb, var(--palette-cream) 12%, transparent);
+  --color-border-strong: color-mix(in srgb, var(--palette-cream) 20%, transparent);
+  --color-accent-subtle: color-mix(in srgb, var(--palette-pop) 20%, #1a1816);
+  --color-glow: color-mix(in srgb, var(--palette-pop-mid) 22%, transparent);
+  --color-glow-soft: color-mix(in srgb, var(--palette-zest) 16%, transparent);
 }

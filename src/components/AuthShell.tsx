@@ -12,7 +12,7 @@ export function AuthShell({
     <>
       <div className="glow" />
       <div className="glow glow-left" />
-      <main className="auth-shell">
+      <main id="main-content" className="auth-shell">
         <div className="auth-shell-copy">
           <p className="eyebrow auth-eyebrow">SideHustleHub</p>
           <h1 className="auth-title">{title}</h1>

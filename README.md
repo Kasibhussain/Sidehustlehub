@@ -43,6 +43,8 @@ If the app errors or auth redirects fail locally:
 | `/jobs/[id]/apply` | Apply to a job (sign in required) |
 | `/dashboard` | Your posted jobs and applications |
 
+After **sign-up**, users are sent to **`/jobs`** (job board as the hub). **Sign-in** falls back to **`/jobs`** when there is no `redirect_url` (e.g. opening `/sign-in` directly). `ClerkProvider` in `src/app/providers.tsx` sets the same defaults; align the env vars above on Vercel so they are not left at `/dashboard`.
+
 Data is stored **in memory** for now (resets on server restart). Replace `src/lib/jobs/store.ts` with a database (e.g. Supabase) for production.
 
 Full product backlog (posters, workers, payments, trust, admin): [docs/PRODUCT-FEATURES.md](docs/PRODUCT-FEATURES.md).
@@ -51,9 +53,9 @@ Full product backlog (posters, workers, payments, trust, admin): [docs/PRODUCT-F
 
 | Route        | Description                    |
 | ------------ | ------------------------------ |
-| `/sign-up`   | Create account                 |
-| `/sign-in`   | Sign in                        |
-| `/dashboard` | Protected user dashboard       |
+| `/sign-up`   | Create account → then **`/jobs`** by default |
+| `/sign-in`   | Sign in → **`/jobs`** when no return URL    |
+| `/dashboard` | Protected user dashboard                     |
 
 Get API keys from the [Clerk Dashboard](https://dashboard.clerk.com/) and add them to `.env.local`. Without keys, Clerk runs in keyless dev mode when you start the app.
 
@@ -84,10 +86,10 @@ This repo is ready for [Vercel](https://vercel.com). Next.js is auto-detected; `
    | `CLERK_SECRET_KEY` | From Clerk → API Keys (secret) |
    | `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | `/sign-in` |
    | `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | `/sign-up` |
-   | `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | `/dashboard` |
-   | `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | `/dashboard` |
-   | `NEXT_PUBLIC_CLERK_SIGN_IN_FORCE_REDIRECT_URL` | `/dashboard` |
-   | `NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL` | `/dashboard` |
+   | `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | `/jobs` |
+   | `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | `/jobs` |
+   | `NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL` | `/jobs` |
+   | `NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL` | `/jobs` |
 
 5. Click **Deploy**.
 

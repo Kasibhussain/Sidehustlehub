@@ -16,6 +16,7 @@ export async function getSession() {
     userId,
     name,
     email: user?.emailAddresses[0]?.emailAddress ?? null,
+    imageUrl: user?.imageUrl ?? null,
   };
 }
 

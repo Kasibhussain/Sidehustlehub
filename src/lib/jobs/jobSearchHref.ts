@@ -1,4 +1,9 @@
-import type { EngagementType, PayType, Urgency } from "@/types/job";
+import type {
+  EngagementType,
+  JobSort,
+  PayType,
+  Urgency,
+} from "@/types/job";
 
 export type JobsUrlState = {
   category?: string;
@@ -7,6 +12,8 @@ export type JobsUrlState = {
   engagementType?: EngagementType;
   payType?: PayType;
   q?: string;
+  /** Omitted in URL when `newest` (default). */
+  sort?: JobSort;
 };
 
 function first(v: string | string[] | undefined): string | undefined {
@@ -29,6 +36,13 @@ export function parseJobsUrl(
   const pt = first(sp.payType);
   const payType: PayType | undefined =
     pt === "fixed" || pt === "hourly" || pt === "offer" ? pt : undefined;
+  const sortRaw = first(sp.sort);
+  const sort: JobSort | undefined =
+    sortRaw === "budget_high" ||
+    sortRaw === "budget_low" ||
+    sortRaw === "deadline_soon"
+      ? sortRaw
+      : undefined;
 
   return {
     category: category || undefined,
@@ -37,6 +51,7 @@ export function parseJobsUrl(
     engagementType,
     payType,
     q: q || undefined,
+    sort,
   };
 }
 
@@ -59,6 +74,12 @@ export function jobsHref(
   }
   if (merged.payType) p.set("payType", merged.payType);
   if (merged.q) p.set("q", merged.q);
+  if (
+    merged.sort &&
+    merged.sort !== "newest"
+  ) {
+    p.set("sort", merged.sort);
+  }
 
   const qs = p.toString();
   return qs ? `/jobs?${qs}` : "/jobs";

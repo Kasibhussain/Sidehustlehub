@@ -1,12 +1,20 @@
 import { ApplicationStatusBadge, JobStatusBadge } from "@/components/jobs/StatusBadge";
+import { WithdrawApplicationButton } from "@/components/jobs/WithdrawApplicationButton";
 import { PageShell } from "@/components/layout/PageShell";
 import { formatJobPay, formatPay, formatPostedDate } from "@/lib/jobs/format";
 import { requireSession } from "@/lib/session";
 import { jobsStore } from "@/lib/jobs/store";
 import Link from "next/link";
 
-export default async function DashboardPage() {
+type SearchParams = Promise<{ withdrawn?: string }>;
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   const session = await requireSession();
+  const sp = await searchParams;
 
   const myJobs = jobsStore.listByPoster(session.userId);
   const myApplications = jobsStore.listApplicationsByApplicant(session.userId);
@@ -21,6 +29,7 @@ export default async function DashboardPage() {
     );
 
   const myServices = jobsStore.listServicesBySeller(session.userId);
+  const savedJobs = jobsStore.listSavedJobs(session.userId);
 
   return (
     <PageShell>
@@ -52,6 +61,12 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {sp.withdrawn === "1" && (
+          <p className="banner-success dashboard-banner" role="status">
+            Application withdrawn — you can apply again if the job is still open.
+          </p>
+        )}
+
         <section className="section-block">
           <h2 className="section-block-title">Your services</h2>
           {myServices.length === 0 ? (
@@ -80,6 +95,34 @@ export default async function DashboardPage() {
         </section>
 
         <section className="section-block">
+          <h2 className="section-block-title">Saved jobs</h2>
+          {savedJobs.length === 0 ? (
+            <div className="empty-state empty-state-compact">
+              <p>Save gigs from the job list to shortlist them here.</p>
+              <Link href="/jobs" className="btn btn-primary">
+                Browse jobs
+              </Link>
+            </div>
+          ) : (
+            <ul className="dash-list">
+              {savedJobs.map((job) => (
+                <li key={job.id} className="dash-list-item">
+                  <p className="dash-list-row">
+                    <Link href={`/jobs/${job.id}`} className="dash-list-link">
+                      {job.title}
+                    </Link>
+                    <JobStatusBadge status={job.status} />
+                  </p>
+                  <p className="dash-list-meta">
+                    {formatJobPay(job)} · {job.location}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="section-block">
           <h2 className="section-block-title">Jobs you posted</h2>
           {myJobs.length === 0 ? (
             <div className="empty-state empty-state-compact">
@@ -98,10 +141,20 @@ export default async function DashboardPage() {
                     </Link>
                     <JobStatusBadge status={job.status} />
                   </p>
-                  <p className="dash-list-meta">
-                    {formatJobPay(job)} ·{" "}
-                    {jobsStore.countApplicationsForJob(job.id)} applications ·{" "}
-                    {formatPostedDate(job.createdAt)}
+                  <p className="dash-list-meta dash-list-meta-with-actions">
+                    <span>
+                      {formatJobPay(job)} ·{" "}
+                      {jobsStore.countApplicationsForJob(job.id)} applications ·{" "}
+                      {formatPostedDate(job.createdAt)}
+                    </span>
+                    {job.status === "open" && (
+                      <Link
+                        href={`/jobs/${job.id}/edit`}
+                        className="dash-inline-action"
+                      >
+                        Edit
+                      </Link>
+                    )}
                   </p>
                 </li>
               ))}
@@ -131,6 +184,14 @@ export default async function DashboardPage() {
                   <p className="dash-list-meta">
                     {job.location} · Applied {formatPostedDate(app.createdAt)}
                   </p>
+                  {app.status === "pending" && (
+                    <div className="dash-list-actions">
+                      <WithdrawApplicationButton
+                        applicationId={app.id}
+                        jobId={job.id}
+                      />
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

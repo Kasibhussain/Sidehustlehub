@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { formatJobPay, formatPostedDate } from "@/lib/jobs/format";
 import type { Job } from "@/types/job";
 import { JobStatusBadge } from "./StatusBadge";
@@ -6,9 +7,11 @@ import { JobStatusBadge } from "./StatusBadge";
 export function JobCard({
   job,
   applicationCount,
+  children,
 }: {
   job: Job;
   applicationCount?: number;
+  children?: ReactNode;
 }) {
   return (
     <article className="job-card">
@@ -32,6 +35,9 @@ export function JobCard({
         <p className="job-card-apps">
           {applicationCount} application{applicationCount === 1 ? "" : "s"}
         </p>
+      )}
+      {children != null && children !== false && (
+        <div className="job-card-actions">{children}</div>
       )}
     </article>
   );

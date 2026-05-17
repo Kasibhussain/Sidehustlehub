@@ -63,6 +63,19 @@ export function ApplicationForm({
         />
       </label>
 
+      <label className="form-field">
+        <span>
+          Contact line for the poster (optional, max 120 characters)
+        </span>
+        <input
+          name="contactNote"
+          type="text"
+          maxLength={120}
+          autoComplete="off"
+          placeholder="e.g. best email or phone for quick replies"
+        />
+      </label>
+
       <SubmitApplicationButton />
     </form>
   );

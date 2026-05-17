@@ -1,26 +1,29 @@
 import { ServiceCard } from "@/components/services/ServiceCard";
+import { ServiceFilters } from "@/components/services/ServiceFilters";
 import { PageShell } from "@/components/layout/PageShell";
 import { getSession } from "@/lib/session";
 import { jobsStore } from "@/lib/jobs/store";
-import { JOB_CATEGORIES } from "@/lib/jobs/constants";
+import { parseServicesUrl } from "@/lib/jobs/serviceSearchHref";
 import Link from "next/link";
 
-type SearchParams = Promise<{ category?: string; q?: string }>;
+type SearchParams = Promise<
+  Record<string, string | string[] | undefined>
+>;
 
 export default async function ServicesPage({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
-  const sp = await searchParams;
+  const spRaw = await searchParams;
+  const urlState = parseServicesUrl(spRaw);
   const session = await getSession();
-  const category =
-    sp.category && JOB_CATEGORIES.includes(sp.category as (typeof JOB_CATEGORIES)[number])
-      ? sp.category
-      : undefined;
-  const q = sp.q?.trim() || undefined;
 
-  const services = jobsStore.listServices({ category, search: q });
+  const services = jobsStore.listServices({
+    category: urlState.category,
+    subcategory: urlState.subcategory,
+    search: urlState.q,
+  });
 
   return (
     <PageShell>
@@ -47,39 +50,28 @@ export default async function ServicesPage({
       </div>
 
       <form className="jobs-search" method="get" action="/services">
+        {urlState.category && (
+          <input type="hidden" name="category" value={urlState.category} />
+        )}
+        {urlState.subcategory && (
+          <input type="hidden" name="subcategory" value={urlState.subcategory} />
+        )}
         <label className="form-field jobs-search-field">
           <span className="sr-only">Search services</span>
           <input
             name="q"
             type="search"
             placeholder="Search titles and descriptions…"
-            defaultValue={q ?? ""}
+            defaultValue={urlState.q ?? ""}
             className="jobs-search-input"
           />
         </label>
-        {category && <input type="hidden" name="category" value={category} />}
         <button type="submit" className="btn btn-secondary">
           Search
         </button>
       </form>
 
-      <div className="job-filters">
-        <Link
-          href="/services"
-          className={`filter-pill${!category ? " filter-pill-active" : ""}`}
-        >
-          All
-        </Link>
-        {JOB_CATEGORIES.map((cat) => (
-          <Link
-            key={cat}
-            href={`/services?category=${encodeURIComponent(cat)}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
-            className={`filter-pill${category === cat ? " filter-pill-active" : ""}`}
-          >
-            {cat}
-          </Link>
-        ))}
-      </div>
+      <ServiceFilters state={urlState} />
 
       {services.length === 0 ? (
         <div className="empty-state">

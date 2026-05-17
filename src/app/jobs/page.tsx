@@ -1,5 +1,6 @@
 import { JobCard } from "@/components/jobs/JobCard";
 import { JobFilters } from "@/components/jobs/JobFilters";
+import { SaveJobButton } from "@/components/jobs/SaveJobButton";
 import { PageShell } from "@/components/layout/PageShell";
 import { getSession } from "@/lib/session";
 import { jobsStore } from "@/lib/jobs/store";
@@ -24,6 +25,7 @@ export default async function JobsPage({
     urgency: urlState.urgency,
     engagementType: urlState.engagementType,
     payType: urlState.payType,
+    sort: urlState.sort ?? "newest",
   });
 
   return (
@@ -70,6 +72,9 @@ export default async function JobsPage({
         {urlState.payType && (
           <input type="hidden" name="payType" value={urlState.payType} />
         )}
+        {urlState.sort && (
+          <input type="hidden" name="sort" value={urlState.sort} />
+        )}
         <label className="form-field jobs-search-field">
           <span className="sr-only">Search jobs</span>
           <input
@@ -98,7 +103,19 @@ export default async function JobsPage({
       ) : (
         <div className="job-grid">
           {jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
+            <JobCard key={job.id} job={job}>
+              {session &&
+                job.status === "open" &&
+                session.userId !== job.posterId && (
+                  <SaveJobButton
+                    jobId={job.id}
+                    initialSaved={jobsStore.isJobSaved(
+                      session.userId,
+                      job.id,
+                    )}
+                  />
+                )}
+            </JobCard>
           ))}
         </div>
       )}

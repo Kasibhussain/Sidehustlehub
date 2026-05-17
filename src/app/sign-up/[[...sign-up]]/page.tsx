@@ -8,7 +8,7 @@ export default function SignUpPage() {
       title="Join the hustle"
       subtitle="Create your account to post gigs, find work, and build your reputation."
     >
-      <SignUp appearance={clerkAppearance} />
+      <SignUp appearance={clerkAppearance} forceRedirectUrl="/jobs" />
     </AuthShell>
   );
 }

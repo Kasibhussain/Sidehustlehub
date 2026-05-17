@@ -1,11 +1,25 @@
 # Gig & Task Marketplace — Feature Set
 
-Structured product backlog for SideHustleHub. Implementation status is tracked against the **current scaffold** (see [README](../README.md)).
+Structured product backlog for SideHustleHub. Status reflects the **current demo** (in-memory `jobsStore` + Clerk auth). A **database and payments** are still out of scope here; see [README](../README.md).
 
 | Legend | Meaning |
 |--------|---------|
-| ✅ | In app today (scaffold) |
-| 🔲 | Not started |
+| ✅ | In app today (demo) |
+| 🔲 | Not started or needs real persistence |
+
+---
+
+## Demo milestone (current app)
+
+| Area | Highlights |
+|------|------------|
+| Listings | Jobs with categories, subcategories, fixed/hourly/**offer** pay, optional deadline, urgency, one-off vs ongoing |
+| Services | Seller listings with category, subcategory, price |
+| Discovery | Job search + filters; **sort** (newest, budget high/low, deadline soon); service search + category/subcategory |
+| Applications | Apply with message, optional quote, optional **contact line** for poster; poster sees applications, accept/reject |
+| Poster tools | Edit **open** jobs, close listings, dashboard |
+| Worker tools | **Saved jobs**, **withdraw** pending application (can apply again), dashboard |
+| Home | **Live snapshot** of newest open jobs and services from the store |
 
 ---
 
@@ -15,13 +29,13 @@ Structured product backlog for SideHustleHub. Implementation status is tracked a
 |--------|--------|--------|
 | Post job/task with title & description | ✅ | `/jobs/new` |
 | Budget (fixed / hourly) | ✅ | `Job.payType`, `payAmount` |
-| Budget range & invite bids | 🔲 | Extend model + UI |
-| **Make an offer** pricing mode | 🔲 | New `PayType` + negotiation flow |
-| Deadline on listings | 🔲 | Add `deadlineAt` to `Job` |
-| **Service listings** — “I will do X for £Y” | 🔲 | New entity: `Service` / seller offers |
-| Categories | ✅ | Flat list in `JOB_CATEGORIES` |
-| **Subcategories** | 🔲 | e.g. `category` + `subcategory` |
-| **One-off vs recurring** work | 🔲 | Add `engagementType: 'once' \| 'recurring'` |
+| Budget range | ✅ | `payAmount` + `payAmountMax` |
+| **Make an offer** pricing mode | ✅ | `PayType` `offer` + required quote on apply |
+| Deadline on listings | ✅ | `deadlineAt` |
+| **Service listings** | ✅ | `Service` + `/services` |
+| Categories | ✅ | `JOB_CATEGORIES` |
+| **Subcategories** | ✅ | `subcategory` on jobs & services |
+| **One-off vs recurring** work | ✅ | `engagementType` |
 
 ---
 
@@ -30,14 +44,13 @@ Structured product backlog for SideHustleHub. Implementation status is tracked a
 | Feature | Status | Notes |
 |--------|--------|--------|
 | Create & publish posts | ✅ | Server actions + store |
-| Set budget (single amount) | ✅ | — |
-| Budget range / bids | 🔲 | Bids table + state machine |
-| Review proposals / quotes | 🔲 | Enrich `Application` → proposals |
+| Edit open listings | ✅ | `/jobs/[id]/edit` |
+| Budget range / bids | 🔲 | Structured bids + counters (beyond single application amount) |
 | Compare profiles, ratings, past work | 🔲 | Profiles + reviews |
-| Accept / decline / counter offers | 🔲 | Application statuses + actions |
+| Accept / decline offers | ✅ | Accept/reject application |
 | Milestone-based payment release | 🔲 | Payments + milestones |
 | Re-hire previous workers | 🔲 | Relationships / history |
-| Urgency flag (ASAP vs flexible) | 🔲 | `urgency` on `Job` |
+| Urgency flag (ASAP vs flexible) | ✅ | `urgency` on `Job` |
 
 ---
 
@@ -45,11 +58,13 @@ Structured product backlog for SideHustleHub. Implementation status is tracked a
 
 | Feature | Status | Notes |
 |--------|--------|--------|
-| Public profile (bio, skills, photo, location) | 🔲 | Clerk metadata or `profiles` table |
-| Portfolio / gallery | 🔲 | Media storage |
-| Availability & service radius | 🔲 | Profile + geo |
-| Bid on jobs | 🔲 | Bidding vs current “apply with message” |
-| Fixed-price **service** listings | 🔲 | Separate from task posts |
+| Public profile (bio, skills, photo, location) | ✅ | In-memory profiles + `/profile` |
+| Portfolio / gallery | ✅ | URLs on profile (no upload) |
+| Availability & service radius | ✅ | Profile fields |
+| Bid on jobs / apply | ✅ | Application + optional **contact line** for poster |
+| Fixed-price **service** listings | ✅ | `/services/new` |
+| **Save jobs** | ✅ | Shortlist on `/jobs`, list on dashboard |
+| **Withdraw** application | ✅ | Pending only; can re-apply |
 | Earnings & payout history | 🔲 | Stripe Connect / ledger |
 | Response & acceptance rate stats | 🔲 | Derived metrics |
 
@@ -59,8 +74,9 @@ Structured product backlog for SideHustleHub. Implementation status is tracked a
 
 | Feature | Status | Notes |
 |--------|--------|--------|
-| Search & filter (category, location) | 🔲 | Partial: category filter on `/jobs` |
-| Filter by price, rating, availability | 🔲 | After data model |
+| Search & filter | ✅ | Category, subcategory, text search, urgency, engagement, pay type |
+| **Sort jobs** | ✅ | Newest, budget high/low, deadline soon |
+| Filter by rating, availability | 🔲 | After data model |
 | Geolocation / radius / map | 🔲 | PostGIS or lat/lng + Haversine |
 | Workers near you | 🔲 | Geo queries |
 | Recommended jobs by skills | 🔲 | Matching service |
@@ -75,6 +91,7 @@ Structured product backlog for SideHustleHub. Implementation status is tracked a
 | File/image sharing | 🔲 | Object storage + signed URLs |
 | Read receipts & typing | 🔲 | Realtime channel features |
 | Intro message templates | 🔲 | User prefs / canned messages |
+| Optional **contact hint** on application | ✅ | One line visible to poster only |
 
 ---
 
@@ -152,13 +169,11 @@ Structured product backlog for SideHustleHub. Implementation status is tracked a
 
 ## Suggested build order (technical)
 
-1. **Persistence** — Replace in-memory `jobsStore` with a database (e.g. Supabase) and align `Job` / `Application` schema with deadline, urgency, and recurring flags.
-2. **Profiles** — Worker profiles linked to Clerk `userId`; extend categories to subcategories.
-3. **Services** — Second listing type for “I will do X for £Y”; keep tasks (buyer-initiated) separate.
-4. **Bidding & offers** — Evolve `Application` into proposals with amount and status (pending / counter / accepted).
-5. **Payments** — Stripe Connect (or regional equivalent) before escrow.
-6. **Messaging** — After jobs can be “awarded,” add threads per job.
-7. **Search & geo** — Full-text + lat/lng indexes.
-8. **Trust & admin** — Reviews, reports, disputes, badges.
+1. **Persistence** — Replace in-memory `jobsStore` with a database (e.g. Supabase); keep the same UX flows.
+2. **Bidding & negotiation** — Richer proposals, counters, threading.
+3. **Messaging** — After jobs can be “awarded,” add threads per job.
+4. **Payments** — Stripe Connect (or regional equivalent) before escrow.
+5. **Search & geo** — Full-text + lat/lng indexes.
+6. **Trust & admin** — Reviews, reports, disputes, badges.
 
 This document can be sliced into epics/issues per section as implementation starts.

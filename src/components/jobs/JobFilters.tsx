@@ -76,6 +76,34 @@ export function JobFilters({ state }: { state: JobsUrlState }) {
           Open to offers
         </Link>
       </div>
+
+      <p className="job-filters-section-label">Sort</p>
+      <div className="job-filters job-filters-row">
+        <Link
+          href={jobsHref(state, { sort: undefined })}
+          className={`filter-pill${!state.sort ? " filter-pill-active" : ""}`}
+        >
+          Newest
+        </Link>
+        <Link
+          href={jobsHref(state, { sort: "budget_high" })}
+          className={`filter-pill${state.sort === "budget_high" ? " filter-pill-active" : ""}`}
+        >
+          Budget high
+        </Link>
+        <Link
+          href={jobsHref(state, { sort: "budget_low" })}
+          className={`filter-pill${state.sort === "budget_low" ? " filter-pill-active" : ""}`}
+        >
+          Budget low
+        </Link>
+        <Link
+          href={jobsHref(state, { sort: "deadline_soon" })}
+          className={`filter-pill${state.sort === "deadline_soon" ? " filter-pill-active" : ""}`}
+        >
+          Deadline soon
+        </Link>
+      </div>
     </div>
   );
 }

@@ -55,12 +55,9 @@ function parseDeadline(v: FormDataEntryValue | null): string | null {
   return d.toISOString();
 }
 
-export async function createJobAction(
-  _prevState: JobActionState,
+function buildJobInputFromForm(
   formData: FormData,
-): Promise<JobActionState> {
-  const session = await requireSession();
-
+): { ok: true; input: CreateJobInput } | { ok: false; error: string } {
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const category = String(formData.get("category") ?? "");
@@ -75,7 +72,7 @@ export async function createJobAction(
   const urgency = parseUrgency(formData.get("urgency"));
 
   if (!title || !description || !category || !location) {
-    return { error: "Please fill in all required fields." };
+    return { ok: false, error: "Please fill in all required fields." };
   }
 
   let payAmount: number;
@@ -87,7 +84,7 @@ export async function createJobAction(
     }
   } else {
     if (!payAmountParsed.ok || payAmountParsed.value <= 0) {
-      return { error: "Enter a valid pay amount." };
+      return { ok: false, error: "Enter a valid pay amount." };
     }
     payAmount = payAmountParsed.value;
   }
@@ -98,31 +95,78 @@ export async function createJobAction(
     payAmountMax < payAmount &&
     payType !== "offer"
   ) {
-    return { error: "Maximum budget must be at least the main amount." };
+    return {
+      ok: false,
+      error: "Maximum budget must be at least the main amount.",
+    };
   }
 
-  const input: CreateJobInput = {
-    title,
-    description,
-    category,
-    subcategory,
-    location,
-    payType,
-    payAmount,
-    payAmountMax:
-      payAmountMax != null && payAmountMax > 0 ? payAmountMax : null,
-    deadlineAt,
-    engagementType,
-    urgency,
+  return {
+    ok: true,
+    input: {
+      title,
+      description,
+      category,
+      subcategory,
+      location,
+      payType,
+      payAmount,
+      payAmountMax:
+        payAmountMax != null && payAmountMax > 0 ? payAmountMax : null,
+      deadlineAt,
+      engagementType,
+      urgency,
+    },
   };
+}
 
-  const job = jobsStore.createJob(input, {
+export async function createJobAction(
+  _prevState: JobActionState,
+  formData: FormData,
+): Promise<JobActionState> {
+  const session = await requireSession();
+
+  const built = buildJobInputFromForm(formData);
+  if (!built.ok) {
+    return { error: built.error };
+  }
+
+  const job = jobsStore.createJob(built.input, {
     id: session.userId,
     name: session.name,
   });
   revalidatePath("/jobs");
   revalidatePath("/dashboard");
   redirect(`/jobs/${job.id}`);
+}
+
+export async function updateJobAction(
+  _prevState: JobActionState,
+  formData: FormData,
+): Promise<JobActionState> {
+  const session = await requireSession();
+  const jobId = String(formData.get("jobId") ?? "").trim();
+  if (!jobId) {
+    return { error: "Missing job." };
+  }
+
+  const built = buildJobInputFromForm(formData);
+  if (!built.ok) {
+    return { error: built.error };
+  }
+
+  const job = jobsStore.updateJob(jobId, session.userId, built.input);
+  if (!job) {
+    return {
+      error:
+        "This job can’t be edited (check you’re the poster and it’s still open).",
+    };
+  }
+
+  revalidatePath(`/jobs/${jobId}`);
+  revalidatePath("/jobs");
+  revalidatePath("/dashboard");
+  redirect(`/jobs/${jobId}`);
 }
 
 export async function applyToJobAction(
@@ -164,9 +208,15 @@ export async function applyToJobAction(
   const proposedAmount =
     proposedRaw != null && proposedRaw > 0 ? proposedRaw : null;
 
+  const contactRaw = String(formData.get("contactNote") ?? "").trim();
+  const contactNote =
+    contactRaw.length > 0
+      ? contactRaw.slice(0, 120)
+      : null;
+
   try {
     jobsStore.apply(
-      { jobId, message, proposedAmount },
+      { jobId, message, proposedAmount, contactNote },
       { id: session.userId, name: session.name },
     );
   } catch (e) {
@@ -340,4 +390,42 @@ export async function createServiceAction(
   revalidatePath("/dashboard");
   revalidatePath(`/u/${session.userId}`);
   redirect(`/services/${service.id}`);
+}
+
+export type SavedJobToggleState = { saved: boolean } | null;
+
+export async function toggleSavedJobAction(
+  _prev: SavedJobToggleState,
+  formData: FormData,
+): Promise<SavedJobToggleState> {
+  const session = await requireSession();
+  const jobId = String(formData.get("jobId") ?? "").trim();
+  if (!jobId) {
+    return _prev ?? { saved: false };
+  }
+  const saved = jobsStore.toggleSavedJob(session.userId, jobId);
+  revalidatePath("/jobs");
+  revalidatePath("/dashboard");
+  revalidatePath(`/jobs/${jobId}`);
+  revalidatePath("/");
+  return { saved };
+}
+
+export async function withdrawApplicationFormAction(
+  _prev: JobActionState,
+  formData: FormData,
+): Promise<JobActionState> {
+  const applicationId = String(formData.get("applicationId") ?? "").trim();
+  const jobId = String(formData.get("jobId") ?? "").trim();
+  if (!applicationId || !jobId) {
+    return { error: "Missing application." };
+  }
+  const session = await requireSession();
+  const result = jobsStore.withdrawApplication(applicationId, session.userId);
+  if ("error" in result) {
+    return { error: result.error };
+  }
+  revalidatePath(`/jobs/${jobId}`);
+  revalidatePath("/dashboard");
+  redirect("/dashboard?withdrawn=1");
 }

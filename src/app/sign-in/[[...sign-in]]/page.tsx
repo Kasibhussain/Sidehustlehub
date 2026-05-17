@@ -8,7 +8,7 @@ export default function SignInPage() {
       title="Welcome back"
       subtitle="Sign in to manage your gigs, pick up hustles, and grow your profile."
     >
-      <SignIn appearance={clerkAppearance} />
+      <SignIn appearance={clerkAppearance} fallbackRedirectUrl="/jobs" />
     </AuthShell>
   );
 }

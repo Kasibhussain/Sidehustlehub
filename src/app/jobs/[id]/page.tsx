@@ -1,6 +1,7 @@
 import { ApplicationDecisionForms } from "@/components/jobs/ApplicationDecisionForms";
 import { ApplicationStatusBadge, JobStatusBadge } from "@/components/jobs/StatusBadge";
 import { CloseJobButton } from "@/components/jobs/CloseJobButton";
+import { SaveJobButton } from "@/components/jobs/SaveJobButton";
 import { PageShell } from "@/components/layout/PageShell";
 import {
   formatDeadline,
@@ -73,9 +74,14 @@ export default async function JobDetailPage({ params, searchParams }: PageProps)
           <p>{job.description}</p>
         </div>
 
-        <div className="job-detail-actions">
+        <div className="job-detail-actions job-detail-actions-row">
           {isPoster ? (
             <>
+              {job.status === "open" && (
+                <Link href={`/jobs/${job.id}/edit`} className="btn btn-secondary">
+                  Edit listing
+                </Link>
+              )}
               {job.status === "assigned" && (
                 <p className="form-note">
                   Someone has been chosen for this job. You can close the listing
@@ -93,9 +99,15 @@ export default async function JobDetailPage({ params, searchParams }: PageProps)
             hasApplied ? (
               <p className="form-note">You&apos;ve already applied to this job.</p>
             ) : session ? (
-              <Link href={`/jobs/${job.id}/apply`} className="btn btn-primary btn-lg">
-                Apply for this job
-              </Link>
+              <div className="job-detail-cta-row">
+                <SaveJobButton
+                  jobId={job.id}
+                  initialSaved={jobsStore.isJobSaved(session.userId, job.id)}
+                />
+                <Link href={`/jobs/${job.id}/apply`} className="btn btn-primary btn-lg">
+                  Apply for this job
+                </Link>
+              </div>
             ) : (
               <Link href="/sign-in" className="btn btn-primary btn-lg">
                 Sign in to apply
@@ -134,6 +146,11 @@ export default async function JobDetailPage({ params, searchParams }: PageProps)
                   )}
                 </p>
                 <p className="application-item-message">{app.message}</p>
+                {app.contactNote ? (
+                  <p className="application-item-contact">
+                    <strong>Contact:</strong> {app.contactNote}
+                  </p>
+                ) : null}
                 {job.status === "open" && app.status === "pending" && (
                   <ApplicationDecisionForms
                     jobId={job.id}

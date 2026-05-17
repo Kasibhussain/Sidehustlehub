@@ -11,7 +11,7 @@ export function PageShell({
     <>
       <div className="glow" />
       <div className="glow glow-left" />
-      <main className={`page-main ${className}`.trim()}>{children}</main>
+      <main id="main-content" className={`page-main ${className}`.trim()}>{children}</main>
       <SiteFooter />
     </>
   );
